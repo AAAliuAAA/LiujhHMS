@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <!--使用自己导入的连接池，就只需要配置这两个东西就可以了-->
+    <!--不需要配置别名，mapper映射当中全部使用包名.类名-->
+    <!--<typeAliases>-->
+        <!--<package name="com.wanho.java102.pojo"/>-->
+    <!--</typeAliases>-->
+    <!--不配置映射，在mybatis中配置映射需要一个一个添加，可以到Spring配置中进行包扫描并添加-->
+    <!--<mappers>-->
+        <!--<mapper resource="mapper/LoginLogMapper.xml"/>-->
+        <!--<mapper resource="mapper/UserMapper.xml"/>-->
+    <!--</mappers>-->
+    <settings>
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+    </settings>
+    <typeHandlers>
+           <typeHandler handler="com.smepms.common.util.handler.EnumTypeHandler" javaType="com.smepms.jobmanagement.enums.WorkerApplicationStatus"/>
+    </typeHandlers>
+    <!--分页需要在mybatis插入分页插件，进行sql拦截-->
+    <plugins>
+        <!-- com.github.pagehelper为PageHelper类所在包名 -->
+        <plugin interceptor="com.github.pagehelper.PageInterceptor">
+            <!-- 使用下面的方式配置参数，后面会有所有的参数介绍 -->
+            <property name="param1" value="value1"/>
+        </plugin>
+    </plugins>
+</configuration>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.smepms.workattendance.mapper.WorkAttendanceConfigMapper">
+    <sql id="allTableColumn">
+      work_attendance_config_id,last_check_in_time,early_check_out_time,config_comment,is_using,work_attendance_config_start_date,work_attendance_config_end_date,creator
+    </sql>
+    <insert id="addWorkAttendanceConfig" parameterType="com.smepms.workattendance.pojo.WorkAttendanceConfig">
+        INSERT INTO t_work_attendance_config(last_check_in_time,early_check_out_time,config_comment,is_using,work_attendance_config_start_date,work_attendance_config_end_date,creator)
+        VALUES (#{lastCheckInTime},#{earlyCheckOutTime},#{configComment},#{isUsing},#{workAttendanceConfigStartDate},#{workAttendanceConfigEndDate},#{creator})
+    </insert>
+
+    <select id="queryAllWorkAttendanceConfigs" resultType="com.smepms.workattendance.pojo.WorkAttendanceConfig">
+        SELECT
+        <include refid="allTableColumn"/>
+        form t_work_attendance_config
+    </select>
+    <delete id="deleteWorkAttendanceConfigByConfigId" parameterType="java.lang.Integer">
+        DELETE FROM t_work_attendance_config WHERE work_attendance_config_id = #{workAttendanceConfigId}
+    </delete>
+    <update id="updateWorkAttendanceConfigIsUsingByConfigId" parameterType="com.smepms.workattendance.pojo.WorkAttendanceConfig">
+        UPDATE t_work_attendance_config
+        SET
+        is_using = #{isUsing}
+        WHERE work_attendance_config_id = #{workAttendanceConfigId}
+    </update>
+    <select id="queryWhichWorkAttendanceConfigIsUsing" resultType="com.smepms.workattendance.pojo.WorkAttendanceConfig">
+        SELECT
+        <include refid="allTableColumn"/>
+        FROM t_work_attendance_config
+        <where>
+            is_using = 1
+        </where>
+    </select>
+    <!--更新当前上下班时间配置的截止日期-->
+    <update id="updateWorkAttendanceConfigEndDate" parameterType="com.smepms.workattendance.pojo.WorkAttendanceConfig">
+        UPDATE
+         t_work_attendance_config
+         SET work_attendance_config_end_date = #{workAttendanceConfigEndDate}
+         WHERE work_attendance_config_id = #{workAttendanceConfigId}
+    </update>
+    <!--查询包含当前创建者员工信息的所有员工信息-->
+    <select id="queryAllWorkAttendanceConfigWithCreatorInfo" resultType="com.smepms.workattendance.pojo.WorkAttendanceConfig">
+        SELECT e.employee_work_id 'employeeCreator.employeeWorkId',w.*
+        FROM
+        t_work_attendance_config w
+        LEFT JOIN
+        t_employee e
+        ON e.employee_id = w.creator
+        ORDER BY w.work_attendance_config_start_date DESC
+    </select>
+    <select id="queryWhichWorkAttendanceConfigIsInNow" resultType="com.smepms.workattendance.pojo.WorkAttendanceConfig" parameterType="java.util.Date">
+        SELECT
+            <include refid="allTableColumn"/>
+        FROM
+            t_work_attendance_config
+        WHERE
+        TO_DAYS(#{targetDate}) BETWEEN TO_DAYS(work_attendance_config_start_date)
+        AND IFNULL(
+        TO_DAYS(work_attendance_config_end_date),
+        TO_DAYS(STR_TO_DATE("8888-05-06", "%Y-%m-%d"))
+        )
+    </select>
+    <!--查询当前所有配置中截止日期最晚的一个-->
+    <select id="queryWhichWorkAttendanceConfigEndDateMax" resultType="com.smepms.workattendance.pojo.WorkAttendanceConfig">
+        SELECT
+        <include refid="allTableColumn"/>
+        from
+        t_work_attendance_config
+        WHERE work_attendance_config_start_date =
+        (SELECT max(work_attendance_config_start_date) FROM t_work_attendance_config)
+    </select>
+</mapper>

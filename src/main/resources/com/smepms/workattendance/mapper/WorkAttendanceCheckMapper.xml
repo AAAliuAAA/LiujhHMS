@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.smepms.workattendance.mapper.WorkAttendanceCheckMapper">
+  <!--private Integer workAttendanceCheckId;-->
+  <!--private Date checkIn;-->
+  <!--private Date checkOut;-->
+  <!--private Date checkDate;-->
+  <!--private Integer employeeId;-->
+  <!--private Integer workAttendanceId;-->
+  <sql id="all_column_except_id">
+    check_in,check_out,check_date,employee_id,work_attendance_id
+  </sql>
+  <sql id="all_column">
+    work_attendance_check_id,check_in,check_out,check_date,employee_id,work_attendance_id
+  </sql>
+  <!--插入至少需要三条数据-->
+  <insert id="insert" parameterType="com.smepms.workattendance.pojo.WorkAttendanceCheck" useGeneratedKeys="true"
+          keyProperty="workAttendanceCheckId">
+    INSERT INTO t_work_attendance_check (
+    <if test="checkIn!=null">
+      check_in,
+    </if>
+    <if test="checkOut!=null">
+      check_out,
+    </if>
+    check_date,employee_id,work_attendance_id
+    )VALUES (
+    <if test="checkIn!=null">
+      #{checkIn},
+    </if>
+    <if test="checkOut!=null">
+      #{checkOut},
+    </if>
+    #{checkDate},
+    #{employeeId},
+    #{workAttendanceId})
+  </insert>
+  <select id="selectByEmployeeId" parameterType="com.smepms.jobmanagement.pojo.Employee"
+          resultType="com.smepms.workattendance.pojo.WorkAttendanceCheck">
+    SELECT
+    <include refid="all_column"/>
+    FROM t_work_attendance_check WHERE employee_id = #{employeeId}
+  </select>
+  <select id="selectAll" resultType="com.smepms.workattendance.pojo.WorkAttendanceCheck">
+    SELECT
+    <include refid="all_column"/>
+    FROM t_work_attendance_check
+  </select>
+  <select id="selectByWorkAttendanceId" resultType="com.smepms.workattendance.pojo.WorkAttendanceCheck">
+    SELECT
+    <include refid="all_column"/>
+    FROM t_work_attendance_check WHERE 1=1
+    AND
+    work_attendance_id IN
+    <foreach collection="workAttendanceIdList" item="id" index="index"
+             open="(" close=")" separator=",">
+      #{id}
+    </foreach>
+  </select>
+  <select id="selectByTargetDate" resultType="com.smepms.workattendance.pojo.WorkAttendanceCheck">
+    SELECT
+    <include refid="all_column"/>
+    FROM t_work_attendance_check WHERE check_date = #{targetDate}
+  </select>
+  <update id="updateByEmployeeId" parameterType="com.smepms.workattendance.pojo.WorkAttendanceCheck">
+    UPDATE t_work_attendance_check SET check_in = #{checkIn} , check_out = #{checkOut} , check_date = #{checkDate} , work_attendance_id = #{workAttendanceId}
+    WHERE employee_id = #{employeeId}
+  </update>
+  <update id="updateById" parameterType="com.smepms.workattendance.pojo.WorkAttendanceCheck">
+    UPDATE t_work_attendance_check SET
+    <if test="checkIn!=null">
+      check_in = #{checkIn} ,
+    </if>
+    <if test="checkOut!=null">
+      check_out = #{checkOut} ,
+    </if>
+    <if test="checkDate!=null">
+      check_date = #{checkDate} ,
+    </if>
+    <if test="workAttendanceId!=null">
+      work_attendance_id = #{workAttendanceId}
+    </if>
+    WHERE work_attendance_check_id = #{workAttendanceCheckId}
+  </update>
+
+  <select id="selectBySameDateSameEmployee" resultType="com.smepms.workattendance.pojo.WorkAttendanceCheck">
+    SELECT
+    <include refid="all_column"/>
+    FROM t_work_attendance_check WHERE TO_DAYS(check_date) = TO_DAYS(STR_TO_DATE(#{targetDate},'%Y-%m-%d %H:%i:%s')) AND
+    employee_id = #{employeeId}
+  </select>
+
+</mapper>

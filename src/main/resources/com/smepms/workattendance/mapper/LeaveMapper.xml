@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.smepms.workattendance.mapper.LeaveMapper" >
+  <resultMap id="BaseResultMap" type="com.smepms.workattendance.pojo.Leave" >
+    <id column="leave_id" property="leaveId" jdbcType="INTEGER" />
+    <result column="leave_start_time" property="leaveStartTime" jdbcType="TIMESTAMP" />
+    <result column="leave_end_time" property="leaveEndTime" jdbcType="TIMESTAMP" />
+    <result column="leave_total_days" property="leaveTotalDays" jdbcType="REAL" />
+    <result column="leave_status" property="leaveStatus" jdbcType="INTEGER" />
+    <result column="employee_id" property="employeeId" jdbcType="INTEGER" />
+    <result column="leave_status_name" property="leaveStatusName" jdbcType="VARCHAR" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.smepms.workattendance.pojo.Leave" extends="BaseResultMap" >
+    <result column="leave_reason" property="leaveReason" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    leave_id, leave_start_time, leave_end_time, leave_total_days, leave_status, employee_id,
+    leave_status_name
+  </sql>
+  <sql id="Blob_Column_List" >
+    leave_reason
+  </sql>
+  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.smepms.workattendance.pojo.LeaveExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from t_leave
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.smepms.workattendance.pojo.LeaveExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from t_leave
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Integer" >
+    select
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from t_leave
+    where leave_id = #{leaveId,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from t_leave
+    where leave_id = #{leaveId,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.smepms.workattendance.pojo.LeaveExample" >
+    delete from t_leave
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.smepms.workattendance.pojo.Leave" >
+    <selectKey resultType="java.lang.Integer" keyProperty="leaveId" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into t_leave (leave_start_time, leave_end_time,
+    leave_total_days, leave_status, employee_id,
+    leave_status_name, leave_reason)
+    values (#{leaveStartTime,jdbcType=TIMESTAMP}, #{leaveEndTime,jdbcType=TIMESTAMP},
+    #{leaveTotalDays,jdbcType=REAL}, #{leaveStatus,jdbcType=INTEGER}, #{employeeId,jdbcType=INTEGER},
+    #{leaveStatusName,jdbcType=VARCHAR}, #{leaveReason,jdbcType=LONGVARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.smepms.workattendance.pojo.Leave" >
+    <selectKey resultType="java.lang.Integer" keyProperty="leaveId" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into t_leave
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="leaveStartTime != null" >
+        leave_start_time,
+      </if>
+      <if test="leaveEndTime != null" >
+        leave_end_time,
+      </if>
+      <if test="leaveTotalDays != null" >
+        leave_total_days,
+      </if>
+      <if test="leaveStatus != null" >
+        leave_status,
+      </if>
+      <if test="employeeId != null" >
+        employee_id,
+      </if>
+      <if test="leaveStatusName != null" >
+        leave_status_name,
+      </if>
+      <if test="leaveReason != null" >
+        leave_reason,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="leaveStartTime != null" >
+        #{leaveStartTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="leaveEndTime != null" >
+        #{leaveEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="leaveTotalDays != null" >
+        #{leaveTotalDays,jdbcType=REAL},
+      </if>
+      <if test="leaveStatus != null" >
+        #{leaveStatus,jdbcType=INTEGER},
+      </if>
+      <if test="employeeId != null" >
+        #{employeeId,jdbcType=INTEGER},
+      </if>
+      <if test="leaveStatusName != null" >
+        #{leaveStatusName,jdbcType=VARCHAR},
+      </if>
+      <if test="leaveReason != null" >
+        #{leaveReason,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.smepms.workattendance.pojo.LeaveExample" resultType="java.lang.Integer" >
+    select count(*) from t_leave
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update t_leave
+    <set >
+      <if test="record.leaveId != null" >
+        leave_id = #{record.leaveId,jdbcType=INTEGER},
+      </if>
+      <if test="record.leaveStartTime != null" >
+        leave_start_time = #{record.leaveStartTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.leaveEndTime != null" >
+        leave_end_time = #{record.leaveEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.leaveTotalDays != null" >
+        leave_total_days = #{record.leaveTotalDays,jdbcType=REAL},
+      </if>
+      <if test="record.leaveStatus != null" >
+        leave_status = #{record.leaveStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.employeeId != null" >
+        employee_id = #{record.employeeId,jdbcType=INTEGER},
+      </if>
+      <if test="record.leaveStatusName != null" >
+        leave_status_name = #{record.leaveStatusName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.leaveReason != null" >
+        leave_reason = #{record.leaveReason,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExampleWithBLOBs" parameterType="map" >
+    update t_leave
+    set leave_id = #{record.leaveId,jdbcType=INTEGER},
+    leave_start_time = #{record.leaveStartTime,jdbcType=TIMESTAMP},
+    leave_end_time = #{record.leaveEndTime,jdbcType=TIMESTAMP},
+    leave_total_days = #{record.leaveTotalDays,jdbcType=REAL},
+    leave_status = #{record.leaveStatus,jdbcType=INTEGER},
+    employee_id = #{record.employeeId,jdbcType=INTEGER},
+    leave_status_name = #{record.leaveStatusName,jdbcType=VARCHAR},
+    leave_reason = #{record.leaveReason,jdbcType=LONGVARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update t_leave
+    set leave_id = #{record.leaveId,jdbcType=INTEGER},
+    leave_start_time = #{record.leaveStartTime,jdbcType=TIMESTAMP},
+    leave_end_time = #{record.leaveEndTime,jdbcType=TIMESTAMP},
+    leave_total_days = #{record.leaveTotalDays,jdbcType=REAL},
+    leave_status = #{record.leaveStatus,jdbcType=INTEGER},
+    employee_id = #{record.employeeId,jdbcType=INTEGER},
+    leave_status_name = #{record.leaveStatusName,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.smepms.workattendance.pojo.Leave" >
+    update t_leave
+    <set >
+      <if test="leaveStartTime != null" >
+        leave_start_time = #{leaveStartTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="leaveEndTime != null" >
+        leave_end_time = #{leaveEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="leaveTotalDays != null" >
+        leave_total_days = #{leaveTotalDays,jdbcType=REAL},
+      </if>
+      <if test="leaveStatus != null" >
+        leave_status = #{leaveStatus,jdbcType=INTEGER},
+      </if>
+      <if test="employeeId != null" >
+        employee_id = #{employeeId,jdbcType=INTEGER},
+      </if>
+      <if test="leaveStatusName != null" >
+        leave_status_name = #{leaveStatusName,jdbcType=VARCHAR},
+      </if>
+      <if test="leaveReason != null" >
+        leave_reason = #{leaveReason,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where leave_id = #{leaveId,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.smepms.workattendance.pojo.Leave" >
+    update t_leave
+    set leave_start_time = #{leaveStartTime,jdbcType=TIMESTAMP},
+    leave_end_time = #{leaveEndTime,jdbcType=TIMESTAMP},
+    leave_total_days = #{leaveTotalDays,jdbcType=REAL},
+    leave_status = #{leaveStatus,jdbcType=INTEGER},
+    employee_id = #{employeeId,jdbcType=INTEGER},
+    leave_status_name = #{leaveStatusName,jdbcType=VARCHAR},
+    leave_reason = #{leaveReason,jdbcType=LONGVARCHAR}
+    where leave_id = #{leaveId,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.smepms.workattendance.pojo.Leave" >
+    update t_leave
+    set leave_start_time = #{leaveStartTime,jdbcType=TIMESTAMP},
+      leave_end_time = #{leaveEndTime,jdbcType=TIMESTAMP},
+      leave_total_days = #{leaveTotalDays,jdbcType=REAL},
+      leave_status = #{leaveStatus,jdbcType=INTEGER},
+      employee_id = #{employeeId,jdbcType=INTEGER},
+      leave_status_name = #{leaveStatusName,jdbcType=VARCHAR}
+    where leave_id = #{leaveId,jdbcType=INTEGER}
+  </update>
+  <select id="selectByEmployeeLeader" parameterType="java.lang.Integer" resultType="com.smepms.workattendance.pojo.Leave">
+      SELECT
+        l.*, e.employee_work_id "employee.employeeWorkId",
+        e.employee_name "employee.employeeName",
+        e2.employee_name "employee.employeeLeaderName",
+        e2.employee_work_id "employee.employeeLeaderWorkId"
+      FROM
+        t_leave l
+      LEFT JOIN t_employee e ON e.employee_id = l.employee_id
+      LEFT JOIN t_employee e2 ON e.employee_leader = e2.employee_id
+      WHERE e2.employee_id = #{employeeLeaderId} AND l.leave_status = #{leaveStatus}
+  </select>
+  <select id="selectByDateAndStatus" resultType="com.smepms.workattendance.pojo.Leave">
+    SELECT
+    l.*, e.employee_work_id "employee.employeeWorkId",
+    e.employee_name "employee.employeeName",
+    e2.employee_name "employee.employeeLeaderName",
+    e2.employee_work_id "employee.employeeLeaderWorkId"
+    FROM
+    t_leave l
+    LEFT JOIN t_employee e ON e.employee_id = l.employee_id
+    LEFT JOIN t_employee e2 ON e.employee_leader = e2.employee_id
+    WHERE
+    1=1
+    <if test="leaveStatus != null">
+      AND
+      l.leave_status = #{leaveStatus}
+    </if>
+    <if test="startDate != null">
+    AND l.leave_start_time > #{startDate}
+    </if>
+    <if test="endDate != null">
+    AND l.leave_start_time &lt; #{endDate}
+    </if>
+    <if test="employeeId != null">
+      AND l.employee_id = #{employeeId}
+    </if>
+  </select>
+  <select id="selectByEmployeeId" resultType="com.smepms.workattendance.pojo.Leave">
+    SELECT * FROM t_leave WHERE employee_id = #{employeeId} ORDER BY leave_id DESC limit 5
+  </select>
+</mapper>

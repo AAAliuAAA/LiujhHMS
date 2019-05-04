@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.smepms.workattendance.mapper.WorkOverTimeStatusMapper" >
+    <insert id="insert" parameterType="com.smepms.workattendance.pojo.WorkOverTimeStatus">
+        INSERT INTO t_work_overtime_status (status_id,status_name,status,overtime_id)VALUES
+        (#{statusId},#{statusName},#{status},#{overtimeId})
+    </insert>
+    <select id="selectById" parameterType="java.lang.Integer" resultType="com.smepms.workattendance.pojo.WorkOverTimeStatus">
+        SELECT * FROM t_work_overtime_status WHERE status_id = #{statusId}
+    </select>
+    <select id="selectByOverTimeId" parameterType="java.lang.Integer" resultType="com.smepms.workattendance.pojo.WorkOverTimeStatus">
+        SELECT * FROM t_work_overtime_status WHERE overtime_id = #{overtimeId}
+    </select>
+    <select id="selectOverTimeByStatus" resultType="com.smepms.workattendance.pojo.WorkOvertime" parameterType="com.smepms.workattendance.pojo.WorkOverTimeStatus">
+      SELECT o.*,
+        e.employee_id "employee.employeeId",
+        e.employee_name "employee.name",
+        e.status_id "employee.statusId",
+        e.employee_work_id "employee.employeeWorkId",
+      FROM t_work_overtime o
+      LEFT JOIN t_work_attendance a ON
+      a.work_overtime_id = o.work_overtime_id
+      LEFT JOIN t_employee e ON  e.employee_id = a.employee_id
+      LEFT JOIN t_work_overtime_status st ON st.overtime_id = o.work_overtime_id WHERE st.`status` = #{status}
+    </select>
+    <update id="update" parameterType="com.smepms.workattendance.pojo.WorkOverTimeStatus">
+       UPDATE t_work_overtime_status SET status=#{status},status_name=#{statusName} WHERE overtime_id = #{overtimeId}
+    </update>
+    <delete id="deleteByOvertimeId" parameterType="java.lang.Integer">
+        DELETE FROM t_work_overtime_status WHERE overtime_id = #{overtimeId}
+    </delete>
+</mapper>

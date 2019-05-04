@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.smepms.workattendance.mapper.HolidayMapper" >
+  <resultMap id="holiday_column" type="com.smepms.workattendance.pojo.Holiday">
+    <id column="holiday_id" property="holidayId" jdbcType="INTEGER" />
+    <result column="holiday_date" property="holidayDate" jdbcType="DATE"/>
+    <result column="holiday_weekday" property="holidayWeekday" jdbcType="INTEGER"/>
+    <result column="holiday_name" property="holidayName" jdbcType="VARCHAR"/>
+    <result column="holiday_comment" property="holidayComment" jdbcType="VARCHAR"/>
+    <result column="holiday_type" property="holidayType" jdbcType="INTEGER"/>
+  </resultMap>
+  <insert id="addHoliday" parameterType="com.smepms.workattendance.pojo.Holiday">
+    INSERT INTO t_holiday (
+      holiday_date,
+      holiday_weekday,
+      holiday_name,
+      holiday_comment,
+      holiday_type
+    )
+    VALUES
+      (
+      #{holidayDate},
+      #{holidayWeekday},
+      #{holidayName},
+      #{holidayComment},
+      #{holidayType}
+    )
+  </insert>
+  <select id="queryAllHolidays" resultMap="holiday_column">
+    SELECT holiday_id,holiday_date,holiday_weekday,holiday_name,holiday_comment,holiday_type FROM t_holiday WHERE 1 = 1
+    <if test="startDate!=null">
+      AND holiday_date &gt; #{startDate}
+    </if>
+    <if test="endDate!=null">
+      AND holiday_date &lt; #{endDate}
+    </if>
+    ORDER BY holiday_id DESC
+    limit #{startRecord},#{pageSize}
+  </select>
+  <select id="queryCountHolidays" resultType="java.lang.Integer">
+   SELECT
+	COUNT(1)
+  FROM
+	(SELECT * FROM t_holiday WHERE 1 = 1
+    <if test="startDate!=null">
+      AND holiday_date &gt; #{startDate}
+    </if>
+    <if test="endDate!=null">
+      AND holiday_date &lt; #{endDate}
+    </if>) t
+  </select>
+  <select id="queryHolidayExists" resultType="java.lang.Integer">
+    SELECT count(1) FROM t_holiday WHERE holiday_date = #{holidayDate}
+  </select>
+  <delete id="deleteHolidayById">
+    DELETE FROM t_holiday WHERE holiday_id = #{holidayId};
+  </delete>
+</mapper>

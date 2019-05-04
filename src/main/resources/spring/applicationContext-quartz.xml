@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:component-scan base-package="com.smepms.common.util.jobs"/>
+    <!--配置JOB类的bean，即自己写的bean-->
+    <!--配置方法映射工厂类-->
+    <bean id="workAttendanceIsUsingUpdateTaskJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <!--导入自己写的task类对象-->
+        <property name="targetObject" ref="workAttendanceIsUsingUpdateTask"></property>
+        <!--选择要执行的方法名-->
+        <property name="targetMethod" value="runTask"></property>
+        <!--是否等待上一个任务执行完后再开启此任务，即是否异步进行-->
+        <property name="concurrent" value="false"></property>
+    </bean>
+    <!--触发器配置 触发器和job是一对一关系-->
+    <bean id="workAttendanceIsUsingUpdateTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <!--注入job-->
+        <property name="jobDetail" ref="workAttendanceIsUsingUpdateTaskJob"/>
+        <!--可以查看源码，这里面的配置有很多种，但至少需要两个配置，
+            1.开始时间
+            2.循环时间
+            通过直接注入一个Date或者startDelay（服务器启动后？）来指定开始时间
+            然后注入reapeatInterval（单位毫秒）来设置两次之间的执行间隔 2.3版本没有此方法了，必须写cron表达式
+
+            当然也可以直接写cron表达式
+        -->
+        <!--
+            0 0 10,14,16 * * ? 每天上午10点，下午2点，4点
+            0 0/30 9-17 * * ?   朝九晚五工作时间内每半小时
+            0 0 12 ? * WED 表示每个星期三中午12点
+            "0 0 12 * * ?" 每天中午12点触发
+            "0 15 10 ? * *" 每天上午10:15触发
+            "0 15 10 * * ?" 每天上午10:15触发
+            "0 15 10 * * ? *" 每天上午10:15触发
+            "0 15 10 * * ? 2005" 2005年的每天上午10:15触发
+            "0 * 14 * * ?" 在每天下午2点到下午2:59期间的每1分钟触发
+            "0 0/5 14 * * ?" 在每天下午2点到下午2:55期间的每5分钟触发
+            "0 0/5 14,18 * * ?" 在每天下午2点到2:55期间和下午6点到6:55期间的每5分钟触发
+            "0 0-5 14 * * ?" 在每天下午2点到下午2:05期间的每1分钟触发
+            "0 10,44 14 ? 3 WED" 每年三月的星期三的下午2:10和2:44触发
+            "0 15 10 ? * MON-FRI" 周一至周五的上午10:15触发
+            "0 15 10 15 * ?" 每月15日上午10:15触发
+            "0 15 10 L * ?" 每月最后一日的上午10:15触发
+            "0 15 10 ? * 6L" 每月的最后一个星期五上午10:15触发
+            "0 15 10 ? * 6L 2002-2005" 2002年至2005年的每月的最后一个星期五上午10:15触发
+            "0 15 10 ? * 6#3" 每月的第三个星期五上午10:15触发
+            上面这个是quartz的语法 定时单位
+         -->
+        <!--设置每天凌晨1点触发一次-->
+        <property name="cronExpression" value="0 0 1 * * ?"></property>
+    </bean>
+    <!--调度器，管理触发器集合-->
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <ref bean="workAttendanceIsUsingUpdateTrigger"/>
+            </list>
+        </property>
+        <property name="taskExecutor" ref="executor"/>
+    </bean>
+    <!-- 线程执行器配置，用于任务注册 -->
+    <bean id="executor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+        <property name="corePoolSize" value="10" />
+        <property name="maxPoolSize" value="100" />
+        <property name="queueCapacity" value="500" />
+    </bean>
+</beans>

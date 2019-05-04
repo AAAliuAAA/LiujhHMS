@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+    <!--配置shiro的bean-->
+    <!--扫描自定义的realm下的包，这意味着realm也可以定义多个，现在我们只定义一个-->
+    <context:component-scan base-package="com.smepms.jobmanagement.realm"/>
+
+    <!--创建并配置一个SecurityManager，即安全管理器，shiro的权限部分的核心配置类-->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <!--注意spring默认的管理设置，通过Spring的component注解对类进行管理时，默认获取单例对象的方式，首字母小写-->
+        <property name="realm" ref="dbRealm"/>
+        <!--导入缓存管理器-->
+        <property name="cacheManager" ref="ehCacheManager"/>
+        <!--导入自定义会话管理器-->
+        <property name="sessionManager" ref="sessionManager"/>
+        <!--导入登录状态记录管理器-->
+        <property name="rememberMeManager" ref="rememberMeManager"/>
+    </bean>
+
+    <!--配置ehcache缓存管理-->
+    <!--创建缓存管理器-->
+    <bean id="ehCacheManager"
+          class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <!--导入缓存配置文件-->
+        <property name="cacheManagerConfigFile" value="classpath:ehcache/ehcache-shiro.xml"/>
+    </bean>
+
+    <!--配置shiro过滤器 shiroFilter，在web.xml中也注册了此过滤器-->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <!--注入安全管理器-->
+        <property name="securityManager" ref="securityManager"/>
+        <!--配置登录页面-->
+        <property name="loginUrl" value="/login.jsp"/>
+        <!--登录成功后，跳转的页面-->
+        <property name="successUrl" value="/index.jsp"/>
+        <property name="unauthorizedUrl" value="/unauthorized.jsp"/>
+        <property name="filterChainDefinitions">
+            <!--这里login.jsp=authc是一个固定的配置，它指的不是在无授权的情况下无法进入，而是指表单提交的login.jsp路径是要求不匿名访问-->
+            <!--配置user权限表示当前url为当前会话必须登录才可以访问，而不是从cookie中获取登录信息-->
+            <!--在有的页面需要权限时（即controller无法控制时）使用过滤器链对权限进行管理-->
+            <!--在使用自定义rememberMe过滤器时，在使用rememberMe进行登录，访问到index.jsp时，同样也可以导入用户当前的数据-->
+            <value>
+                /login.jsp=authc
+                /employee_add.jsp=authc
+                /employee_updatePassword.jsp=authc
+                /employee_check_allajax.jsp=perms[hr:view_employee]
+                /employee_add.jsp=perms[hr:add_employee]
+                /employee_update.jsp=perms[hr:update_employee]
+                /unauthorized.jsp=anon
+                /error.jsp=anon
+                /*=rememberMe,user
+            </value>
+        </property>
+        <property name="filters">
+            <!--将配置好的首页过滤器注册到过滤器中的map集合里，即过滤器链-->
+            <util:map>
+                <!--认证：过滤 引用-->
+                <entry key="authc" value-ref="formAuthenticationFilter"/>
+                <!--加入自己的rememberMe过滤器，但是这样在每访问一次user的权限下的url都会导致-->
+                <entry key="rememberMe" value-ref="rememberMeSessionFilter"/>
+            </util:map>
+        </property>
+    </bean>
+    <!--首页过滤器：使用shiro来控制登录-->
+    <bean id="formAuthenticationFilter" class="com.smepms.common.filters.shiro.LocalFormAuthenticationFilter">
+        <!--登录账号-->
+        <property name="usernameParam" value="employeeWorkId"/>
+        <property name="passwordParam" value="employeePassword"/>
+        <property name="loginUrl" value="/login.jsp"/>
+        <property name="rememberMeParam" value="rememberMe"/>
+        <!--这里还可以配置当前登录错误信息，默认放到request作用域-->
+    </bean>
+    <bean id="rememberMeSessionFilter" class="com.smepms.jobmanagement.util.RememberMeFilterCover"></bean>
+    <!--配置bean的生命周期 由 spring管理-->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
+
+
+    <!--创建会话管理器-->
+    <bean id="sessionManager" class="org.apache.shiro.web.session.mgt.DefaultWebSessionManager">
+        <!--会话默认失效时间，这个配置会覆盖tomcat容器的session配置-->
+        <property name="globalSessionTimeout" value="3600000"/>
+        <!--session失效后是否从内存中删除（删除不是直接删除，而是通过定时器来删除）-->
+        <property name="deleteInvalidSessions" value="true"/>
+        <!--启用session验证定时任务执行器-->
+        <property name="sessionValidationSchedulerEnabled" value="true"/>
+        <!--注入定时任务验证的处理对象，下面配置，互相注入-->
+        <property name="sessionValidationScheduler" ref="sessionValidationScheduler"/>
+
+        <property name="sessionValidationInterval" value="3600000"/>
+        <!--指定使用的sessionDao-->
+        <property name="sessionDAO" ref="sessionDao"/>
+        <!--指定使用的cookie配置对象-->
+        <property name="sessionIdCookie" ref="sessionIdCookie"/>
+        <!--启用自定义cookie配置对象-->
+        <property name="sessionIdCookieEnabled" value="true"/>
+    </bean>
+
+
+    <!--失效session定时扫描清除管理器-->
+    <bean id="sessionValidationScheduler" class="com.smepms.common.util.confictionresolve.QuartzSessionValidationScheduler">
+        <!--扫描间隔时间一小时，有失效的session就从内存中删除，这一步其实在之前是由tomcat来做的，tomcat会定时扫描，然后清除失效的session，为了防止将tomcat的配置覆盖，所以配置了定时器-->
+        <property name="sessionValidationInterval" value="3600000"/>
+        <property name="sessionManager" ref="sessionManager"/>
+    </bean>
+
+    <!--session数据管理，其实就是session的持久化存储，在这里是存储到缓存中-->
+    <bean id="sessionDao" class="org.apache.shiro.session.mgt.eis.EnterpriseCacheSessionDAO">
+        <!--定义当前存储的活跃缓存名称-->
+        <property name="activeSessionsCacheName" value="ljhpms-activeSessionCache"/>
+        <!--注入自定义的sessionID生成器-->
+        <property name="sessionIdGenerator" ref="sessionIdGenerator"/>
+    </bean>
+    <!--创建自定义sessionId生成器-->
+    <bean id="sessionIdGenerator" class="org.apache.shiro.session.mgt.eis.JavaUuidSessionIdGenerator"></bean>
+
+
+    <!--配置 sessionIdCookie，使用的类是SimpleCookie，可以配置当前cookie的各项设置-->
+    <bean id="sessionIdCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
+        <!--配置JSessionIDD的名字，自定义-->
+        <constructor-arg value="ljhpms-session-id"/>
+        <!--配置 该cookie不会受跨域的脚本攻击-->
+        <property name="httpOnly" value="true"/>
+        <!--设置cookie失效时间，-1表示生命周期为当前会话-->
+        <property name="maxAge" value="-1"/>
+    </bean>
+
+
+    <bean id="rememberMeManager" class="org.apache.shiro.web.mgt.CookieRememberMeManager">
+        <!--配置使用cookie类-->
+        <property name="cookie" ref="rememberMeCookie"/>
+    </bean>
+
+    <bean id="rememberMeCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
+        <!--不允许跨域访问-->
+        <property name="httpOnly" value="true"/>
+        <!--通过构造器注入cookie名称-->
+        <constructor-arg value="ljhpms-rememberMe"/>
+        <!--设置cookie失效时间，即记住密码的时间，这里设置为一周-->
+        <property name="maxAge" value="604800"/>
+    </bean>
+
+    <bean id="dbRealm" class="com.smepms.jobmanagement.realm.DbRealm">
+        <property name="credentialsMatcher">
+            <bean class="com.smepms.jobmanagement.util.EmployeeCredentialsMatcher"></bean>
+        </property>
+    </bean>
+
+
+
+</beans>

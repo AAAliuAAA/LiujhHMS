@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.smepms.jobmanagement.mapper.RegularWorkerApplicationMapper" >
+  <insert id="insert" parameterType="com.smepms.jobmanagement.pojo.RegularWorkerApplication">
+    INSERT INTO t_regular_worker_application (
+    <if test="leaderAcception!=null">
+    leader_acception,
+    </if>
+    employee_id,
+    <if test="employeeLeaderId!=null">
+    employee_leader_id,
+    </if>
+    employee_application,
+    application_status
+    )VALUES (
+    <if test="leaderAcception!=null">
+      #{leaderAcception},
+    </if>
+      #{employeeId},
+    <if test="employeeLeaderId!=null">
+      #{employeeLeaderId},
+    </if>
+    #{employeeApplication},
+    #{applicationStatus,typeHandler=com.smepms.common.util.handler.EnumTypeHandler}
+    )
+  </insert>
+  <update id="update" parameterType="com.smepms.jobmanagement.pojo.RegularWorkerApplication">
+    UPDATE t_regular_worker_application SET
+    <if test="leaderAcception!=null">
+      leader_acception = #{leaderAcception},
+    </if>
+    <if test="employeeLeaderId!=null">
+      employee_leader_id = #{employeeLeaderId},
+    </if>
+    employee_application = #{employeeApplication},
+    application_status = #{applicationStatus,typeHandler=com.smepms.common.util.handler.EnumTypeHandler},
+    employee_id = #{employeeId}
+    WHERE regular_worker_application_id = #{regularWorkerApplicationId}
+  </update>
+
+  <select id="findOneByEmployeeId" resultType="com.smepms.jobmanagement.pojo.RegularWorkerApplication" parameterType="java.lang.Integer">
+    SELECT a.*,e.employee_name "employee.employeeName" FROM t_regular_worker_application a LEFT JOIN t_employee e ON a.employee_id = e.employee_id WHERE e.employee_id = #{employeeId}
+  </select>
+
+  <select id="findApplicationsByLeaderIdAndStatus" resultType="com.smepms.jobmanagement.pojo.RegularWorkerApplication">
+    SELECT a.*,e.employee_name "employee.employeeName" FROM t_regular_worker_application a LEFT JOIN t_employee e ON a.employee_id = e.employee_id WHERE employee_leader_id = #{leaderId} AND application_status = #{status}
+  </select>
+  <select id="findOne" resultType="com.smepms.jobmanagement.pojo.RegularWorkerApplication">
+    SELECT * FROM t_regular_worker_application WHERE regular_worker_application_id = #{regularWorkerApplicationId}
+  </select>
+  <delete id="delete">
+    delete FROM t_regular_worker_application WHERE regular_worker_application_id = #{regularWorkerApplicationId}
+  </delete>
+  <select id="findAll" resultType="com.smepms.jobmanagement.pojo.RegularWorkerApplication">
+    SELECT a.*,e.employee_name "employee.employeeName" FROM t_regular_worker_application a LEFT JOIN t_employee e ON a.employee_id = e.employee_id WHERE a.application_status = #{status}
+  </select>
+
+</mapper>
