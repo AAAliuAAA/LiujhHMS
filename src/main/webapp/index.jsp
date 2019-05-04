@@ -258,7 +258,7 @@
   var websocket = null;
   if ('WebSocket' in window) {
     //Websocket的连接
-    websocket = new WebSocket("ws://localhost:80/websocket/chats.do");//WebSocket对应的地址
+    websocket = new WebSocket("ws://118.25.237.124:80/websocket/chats.do");//WebSocket对应的地址
   } else {
     alert("当前浏览器不支持websocket")
   }
