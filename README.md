@@ -1,2 +1,2 @@
 # graduation_design
-little boy with hope and dreams
+a simple Human-Resource System based on Spring SpringMVC Mybaitis websocket and so on
